@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.4;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract My721Token is ERC721, Ownable {
+    constructor() ERC721("MyToken", "MTK") {}
+
+    function safeMint(address to, uint256 tokenId) public onlyOwner {
+        _safeMint(to, tokenId);
+    }
+    mapping(address=>bool)internal stakeholder;
+    mapping(address => uint[]) internal stakes;
+    mapping(address => uint256) public rewards;
+    function addStaker(address Stakehldr)public{
+        require(!stakeholder[Stakehldr],"Given address is a stakeholder");
+        stakeholder[Stakehldr]=true;
+    } 
+    function checkStakeholder(address staker)public view returns(bool){
+        if(stakeholder[staker]==true){return true;}
+        else{return false;}
+    }
+    function removeStaker(address Stkehldr)public{
+        require(stakeholder[Stkehldr]==true,"Given address is not a stakeholder");
+        stakeholder[Stkehldr]=false;}
+    function mintStakes(uint[] memory _stake)public {
+        for(uint i=0;i<_stake.length;i++){
+         _burn(_stake[i]);}
+         stakes[msg.sender]=_stake;
+         }
+    function removeStake(uint _id) public{
+        uint[] storage arr=stakes[msg.sender];
+        for(uint i=0;i<arr.length;i++){
+            if(arr[i]==_id){arr[i]=arr[arr.length-1];
+            arr.pop();}}
+        stakes[msg.sender]=arr;
+        _safeMint(msg.sender,_id);
+
+        }
+    function stakeof(address ad)public view returns(uint[] memory){
+        return stakes[ad];
+    }
+    function DistributeReward(address st)public{
+     uint[] memory ar=stakes[st];
+    uint value=10*ar.length;
+    rewards[st]=value;
+    }
+    function withdraw() public{
+        uint[] memory sstakes=stakes[msg.sender];
+        for(uint i=0;i<sstakes.length;i++){
+            _safeMint(msg.sender,sstakes[i]);
+            stakes[msg.sender]=[0];
+        }
+
+    }
+
+    }
